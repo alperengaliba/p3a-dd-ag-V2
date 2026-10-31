@@ -34,7 +34,7 @@
   --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25); color-scheme:dark}
 
 *{box-sizing:border-box}
-html,body{height:100%}
+html,body,#root{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
 h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
 h1{font-size:26px} h2{font-size:17px} h3{font-size:15px}
@@ -208,6 +208,7 @@ table.t{width:100%;border-collapse:collapse;font-size:13.5px}
 .report .rk{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;color:#6a6658;text-transform:uppercase}
 .report table{width:100%;border-collapse:collapse;font-size:12.5px}
 .report th,.report td{border-bottom:1px solid var(--paper-line);padding:6px 6px;text-align:left;vertical-align:top}
+.report td:first-child{white-space:nowrap}
 .report th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6a6658}
 .report ol,.report ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
 .rsev{font-weight:800;font-size:11px}
@@ -318,7 +319,7 @@ const S = {
   checklist:[
     ['lisans','Üretim lisansı','var','d1',''],
     ['lisans','Lisans tadilleri','var','d2',''],
-    ['lisans','Tamlama süresi / süre uzatım kararı','var','d3','Tamamlama: 14.03.2027'],
+    ['lisans','Tamamlama süresi / süre uzatım kararı','var','d3','Tamamlama: 14.03.2027'],
     ['baglanti','TEİAŞ bağlantı görüşü','var','d4',''],
     ['baglanti','Bağlantı anlaşması','var','d5','Unvan güncel değil (F-10)'],
     ['baglanti','Sistem kullanım anlaşması','taslak','d6','İmzalı nüsha yok'],
