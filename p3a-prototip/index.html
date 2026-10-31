@@ -1,0 +1,748 @@
+<title>P3A Due Diligence</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: sabit sol menü (portföy + proje bölümleri) + üst bar + içerik; dar ekranda menü kayar */
+:root{
+  --bg:#f2f3f7; --surface:#ffffff; --surface-2:#eceef4; --line:#dcdfe8;
+  --fg:#151a2c; --muted:#596178; --accent:#2b44c7; --accent-fg:#ffffff; --accent-soft:#e6e9fb;
+  --mark:#e9b43c; --mark-soft:#fcf2d7;
+  --ok:#1d7f55; --ok-soft:#e1f3ea; --warn:#9a6312; --warn-soft:#fbf0d9; --bad:#bd3b28; --bad-soft:#fbe6e2; --crit:#9f1d12;
+  --info:#4b5bb8; --info-soft:#eceefb; --violet:#7a3fb0; --violet-soft:#f1e8fa;
+  --paper:#fffdf8; --paper-ink:#23262f; --paper-line:#d9d4c6;
+  --shadow:0 1px 2px rgba(20,26,50,.06),0 6px 24px rgba(20,26,50,.06);
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Public Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0e1120; --surface:#161a2c; --surface-2:#1e2337; --line:#2a3049;
+  --fg:#e6e8f1; --muted:#9aa2bb; --accent:#8a9dff; --accent-fg:#0e1120; --accent-soft:#232a52;
+  --mark:#e0b54a; --mark-soft:#3a311c;
+  --ok:#55c896; --ok-soft:#16352a; --warn:#e6ad4f; --warn-soft:#392d16; --bad:#f2806b; --bad-soft:#3d201c; --crit:#ff9b88;
+  --info:#9fabff; --info-soft:#232a4d; --violet:#c9a2f0; --violet-soft:#33244a;
+  --paper:#f4f1e8; --paper-ink:#23262f; --paper-line:#d9d4c6;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0e1120; --surface:#161a2c; --surface-2:#1e2337; --line:#2a3049;
+  --fg:#e6e8f1; --muted:#9aa2bb; --accent:#8a9dff; --accent-fg:#0e1120; --accent-soft:#232a52;
+  --mark:#e0b54a; --mark-soft:#3a311c;
+  --ok:#55c896; --ok-soft:#16352a; --warn:#e6ad4f; --warn-soft:#392d16; --bad:#f2806b; --bad-soft:#3d201c; --crit:#ff9b88;
+  --info:#9fabff; --info-soft:#232a4d; --violet:#c9a2f0; --violet-soft:#33244a;
+  --paper:#f4f1e8; --paper-ink:#23262f; --paper-line:#d9d4c6;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:14px;line-height:1.5}
+h1,h2,h3{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em;text-wrap:balance;margin:0}
+h1{font-size:26px} h2{font-size:17px} h3{font-size:15px}
+p{margin:0}
+a{color:var(--accent)}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-mono);font-size:12.5px}
+.num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.muted{color:var(--muted)}
+.small{font-size:12.5px}
+.label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+
+.btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);padding:8px 14px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13.5px;white-space:nowrap}
+.btn:hover{border-color:var(--muted)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.danger{color:var(--bad)}
+.btn.ghost{background:transparent;border-color:transparent}
+.btn.ghost:hover{background:var(--surface-2)}
+.btn.sm{padding:5px 10px;font-size:12.5px}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+
+/* ---------- İskelet ---------- */
+.app{display:grid;grid-template-columns:244px 1fr;min-height:100%}
+.side{background:var(--surface);border-right:1px solid var(--line);display:flex;flex-direction:column;gap:18px;padding:20px 14px;position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:0 6px}
+.brand-mark{width:34px;height:34px;border-radius:8px;background:var(--accent);color:var(--accent-fg);display:grid;place-items:center;font-family:var(--f-display);font-weight:700;font-size:15px;letter-spacing:-.02em;position:relative;flex:none}
+.brand-mark::after{content:"";position:absolute;right:-3px;bottom:-3px;width:11px;height:11px;border-radius:50%;background:var(--mark);border:2px solid var(--surface)}
+.brand-name{font-family:var(--f-display);font-weight:700;font-size:15.5px;line-height:1.1}
+.brand-name span{display:block;font-family:var(--f-body);font-weight:500;font-size:11.5px;color:var(--muted);letter-spacing:.02em}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav .label{padding:10px 10px 4px}
+.nav a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-radius:8px;color:var(--fg);text-decoration:none;font-weight:500}
+.nav a:hover{background:var(--surface-2)}
+.nav a.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.nav .count{font-size:11.5px;font-weight:700;background:var(--bad-soft);color:var(--bad);padding:1px 7px;border-radius:99px}
+.proj-card{border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;margin:0 2px}
+.proj-card b{font-family:var(--f-display);font-size:15px}
+.side-foot{margin-top:auto;border:1px solid var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.meter{height:6px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:99px}
+
+.main{min-width:0;display:flex;flex-direction:column}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:12px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.top select{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:7px 10px;font-weight:600;max-width:280px}
+.top .spacer{flex:1}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--mark-soft);color:var(--warn);display:grid;place-items:center;font-weight:700;font-size:12.5px;border:1px solid var(--line)}
+.menu-btn{display:none}
+.demo-tag{font-size:11.5px;font-weight:700;color:var(--warn);background:var(--mark-soft);padding:3px 9px;border-radius:99px}
+#view{padding-block:24px 48px;padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:20px;max-width:1320px;width:100%}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.head p{margin-top:4px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);min-width:0}
+.card-h{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.card-b{padding:18px}
+.tw{overflow-x:auto}
+table.t{width:100%;border-collapse:collapse;font-size:13.5px}
+.t th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600;padding:10px 14px;border-bottom:1px solid var(--line);white-space:nowrap}
+.t td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+.t tr:last-child td{border-bottom:0}
+.t tr.click{cursor:pointer}
+.t tr.click:hover td{background:var(--surface-2)}
+.t tr.sel td{background:var(--accent-soft)}
+.t .who{font-weight:600}
+.t .sub{font-size:12px;color:var(--muted)}
+.t tr.grp td{background:var(--surface-2);font-weight:700;font-size:12.5px;padding-block:8px}
+
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.kpi{padding:16px 18px;display:flex;flex-direction:column;gap:6px}
+.kpi b{font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .delta{font-size:12px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:start}
+
+/* ---------- Etiketler ---------- */
+.sev{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:800;padding:3px 9px;border-radius:5px;white-space:nowrap;letter-spacing:.02em}
+.sev-kritik{background:var(--crit);color:var(--surface)}
+.sev-yuksek{background:var(--bad-soft);color:var(--bad)}
+.sev-orta{background:var(--warn-soft);color:var(--warn)}
+.sev-dusuk{background:var(--surface-2);color:var(--muted)}
+.kind{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;white-space:nowrap;border:1px solid currentColor}
+.kind-gercek{color:var(--info)} .kind-det{color:var(--ok)} .kind-ai{color:var(--violet)} .kind-hip{color:var(--warn)} .kind-tam{color:var(--muted)}
+.st{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.st::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.st-acik{background:var(--mark-soft);color:var(--warn)}
+.st-onay{background:var(--ok-soft);color:var(--ok)}
+.st-red{background:var(--surface-2);color:var(--muted)}
+.st-var{background:var(--ok-soft);color:var(--ok)}
+.st-kismi{background:var(--warn-soft);color:var(--warn)}
+.st-eksik{background:var(--bad-soft);color:var(--bad)}
+.st-sure{background:var(--bad-soft);color:var(--bad)}
+.st-taslak{background:var(--warn-soft);color:var(--warn)}
+.st-wait{background:var(--info-soft);color:var(--info)}
+.st-wait::before{animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.25}}
+.chip{border:1px solid var(--line);background:var(--surface);padding:6px 12px;border-radius:99px;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;gap:6px;align-items:center}
+.chip.on{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.chip .n{opacity:.7;font-variant-numeric:tabular-nums}
+.tag{font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;background:var(--surface-2);color:var(--muted);white-space:nowrap}
+.src{display:inline-flex;gap:6px;align-items:baseline;font-size:12.5px;padding:3px 8px;border-radius:6px;background:var(--surface-2);margin:2px 4px 2px 0}
+.src b{font-variant-numeric:tabular-nums}
+.src.bad{background:var(--bad-soft);color:var(--bad)}
+
+/* ---------- Form ---------- */
+.field{display:flex;flex-direction:column;gap:5px;min-width:0}
+.field label{font-size:12px;font-weight:600;color:var(--muted)}
+.field input,.field select,.field textarea{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;width:100%;min-width:0}
+.field textarea{min-height:70px;resize:vertical}
+.fgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.fgrid .full{grid-column:1/-1}
+.check{display:flex;gap:8px;align-items:flex-start;font-size:13px}
+.check input{margin-top:3px}
+
+/* ---------- Risk matrisi ---------- */
+.matrix{display:grid;grid-template-columns:minmax(110px,1.4fr) repeat(4,minmax(46px,1fr));gap:4px;font-size:12.5px}
+.matrix .h{font-size:11px;font-weight:700;color:var(--muted);text-align:center;padding:4px 0}
+.matrix .a{padding:7px 4px;font-weight:600}
+.matrix .c{border-radius:6px;display:grid;place-items:center;font-weight:800;font-variant-numeric:tabular-nums;min-height:32px;background:var(--surface-2);color:var(--muted)}
+.matrix .c.z{opacity:.45;font-weight:500}
+.matrix .c.k{background:var(--crit);color:var(--surface)}
+.matrix .c.y{background:var(--bad-soft);color:var(--bad)}
+.matrix .c.o{background:var(--warn-soft);color:var(--warn)}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13.5px}
+.facts dt{color:var(--muted)} .facts dd{margin:0;font-weight:600}
+.timeline{display:flex;flex-direction:column}
+.tl{display:grid;grid-template-columns:92px 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.tl:first-child{border-top:0}
+.tl .d{font-family:var(--f-mono);font-size:12px;font-weight:600}
+.tl.past .d{color:var(--bad)}
+
+/* ---------- Data room ---------- */
+.dr{display:grid;grid-template-columns:220px minmax(0,1fr);gap:20px;align-items:start}
+.cats{display:flex;flex-direction:column;gap:2px;padding:8px}
+.cats button{display:flex;justify-content:space-between;gap:8px;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer;text-align:left;font-weight:500}
+.cats button:hover{background:var(--surface-2)}
+.cats button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.cats .n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12.5px}
+.conf{font-weight:700;font-variant-numeric:tabular-nums;font-size:12.5px}
+.conf.low{color:var(--warn)}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--surface);transition:.15s}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.fname{font-weight:600;word-break:break-all}
+
+/* ---------- Bulgular ---------- */
+.issues{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:20px;align-items:start}
+.ilist{display:flex;flex-direction:column}
+.irow{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;padding:13px 18px;border-bottom:1px solid var(--line);cursor:pointer;text-align:left;background:none;border-left:3px solid transparent;border-top:0;border-right:0;width:100%}
+.irow:hover{background:var(--surface-2)}
+.irow.on{background:var(--accent-soft);border-left-color:var(--accent)}
+.irow .id{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.irow .ttl{font-weight:600}
+.irow .meta{grid-column:2;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.detail{position:sticky;top:84px}
+.evid{display:flex;flex-direction:column;gap:10px}
+.paper{background:var(--paper);color:var(--paper-ink);padding:14px 16px;border-radius:4px;box-shadow:0 1px 4px rgba(0,0,0,.12);font-size:12.5px;border:1px solid var(--paper-line)}
+.paper .ph{display:flex;justify-content:space-between;gap:10px;font-family:var(--f-mono);font-size:11.5px;color:#6a6658;border-bottom:1px solid var(--paper-line);padding-bottom:6px;margin-bottom:8px}
+.paper q{quotes:none;font-family:Georgia,"Times New Roman",serif;font-size:13.5px;line-height:1.55}
+.paper mark{background:rgba(233,180,60,.45);color:inherit;padding:0 2px;border-radius:2px}
+.why{border-left:3px solid var(--violet);padding:4px 0 4px 12px}
+.reco{background:var(--accent-soft);border-radius:8px;padding:12px 14px}
+.audit{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+
+/* ---------- Rapor ---------- */
+.report{background:var(--paper);color:var(--paper-ink);max-width:820px;width:100%;margin:0 auto;padding:44px 52px;box-shadow:0 2px 14px rgba(0,0,0,.12);border-radius:3px;display:flex;flex-direction:column;gap:22px;font-size:13.5px}
+.report h1{font-size:26px;color:var(--paper-ink)}
+.report h2{font-size:16px;color:var(--paper-ink);border-bottom:2px solid var(--paper-ink);padding-bottom:4px}
+.report .rk{font-family:var(--f-mono);font-size:11.5px;letter-spacing:.06em;color:#6a6658;text-transform:uppercase}
+.report table{width:100%;border-collapse:collapse;font-size:12.5px}
+.report th,.report td{border-bottom:1px solid var(--paper-line);padding:6px 6px;text-align:left;vertical-align:top}
+.report th{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#6a6658}
+.report ol,.report ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.rsev{font-weight:800;font-size:11px}
+.rsev.kritik{color:#9f1d12} .rsev.yuksek{color:#bd3b28} .rsev.orta{color:#9a6312} .rsev.dusuk{color:#6a6658}
+
+/* ---------- Giriş ---------- */
+.auth{min-height:100%;display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+.auth-art{background:var(--accent);color:var(--accent-fg);padding:48px max(40px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:28px;justify-content:space-between}
+.auth-art h1{font-size:38px;line-height:1.08;max-width:17ch}
+.auth-art .lead{font-size:16px;opacity:.88;max-width:46ch}
+.auth-art .brand-mark{background:var(--accent-fg);color:var(--accent)}
+.auth-art .brand-mark::after{border-color:var(--accent)}
+.flow{display:flex;flex-direction:column;max-width:440px}
+.flow div{display:grid;grid-template-columns:28px 1fr;gap:12px;padding:10px 0;border-top:1px solid color-mix(in srgb,var(--accent-fg) 22%,transparent)}
+.flow b{font-family:var(--f-mono);font-size:12px;opacity:.7;padding-top:2px}
+.auth-form{display:flex;align-items:center;justify-content:center;padding:40px max(24px,env(safe-area-inset-right,0px)) 40px max(24px,env(safe-area-inset-left,0px))}
+.auth-form form{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+
+.modal-bg{position:fixed;inset:0;background:rgba(10,12,24,.45);z-index:50;display:grid;place-items:center;padding:16px}
+.modal{background:var(--surface);border-radius:14px;width:100%;max-width:580px;max-height:calc(100% - 32px);overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal .card-h{position:sticky;top:0;background:var(--surface)}
+#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:60;background:var(--fg);color:var(--bg);padding:11px 18px;border-radius:10px;font-weight:600;box-shadow:0 8px 30px rgba(0,0,0,.25);max-width:calc(100% - 32px)}
+.empty{padding:36px 20px;text-align:center;color:var(--muted)}
+
+@media (max-width:1100px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.grid2,.issues{grid-template-columns:minmax(0,1fr)}.detail{position:static}}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;inset:0 auto 0 0;width:264px;z-index:40;transform:translateX(-100%);transition:transform .2s;padding-left:max(14px,env(safe-area-inset-left,0px));padding-top:calc(20px + env(safe-area-inset-top,0px))}
+  .app.nav-open .side{transform:none;box-shadow:0 0 0 100vmax rgba(10,12,24,.4)}
+  .menu-btn{display:inline-flex}
+  .top,#view{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .auth{grid-template-columns:minmax(0,1fr)}
+  .auth-art{padding:32px max(16px,env(safe-area-inset-left,0px))}
+  .auth-art h1{font-size:28px}
+  .fgrid{grid-template-columns:minmax(0,1fr)}
+  .dr{grid-template-columns:minmax(0,1fr)}
+  .cats{flex-direction:row;overflow-x:auto}
+  .cats button{white-space:nowrap}
+  .report{padding:28px 20px}
+  .top select{max-width:190px}
+}
+@media (max-width:480px){.kpis{grid-template-columns:minmax(0,1fr)}.demo-tag{display:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div id="root"></div>
+<div id="toast" hidden></div>
+<div id="modal-root"></div>
+
+<script>
+/* =========================================================
+   P3A Due Diligence — tıklanabilir arayüz prototipi (Ürün 01)
+   Tüm proje, belge ve bulgu verileri uydurmadır.
+   ========================================================= */
+(function(){
+const esc = s => String(s ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtDate = iso => { const [y,m,d]=iso.split('-'); return `${d}.${m}.${y}`; };
+const TODAY = '2026-10-31';
+
+/* ---------- Sözlükler ---------- */
+const CATS = {
+  lisans:'Lisans ve EPDK', baglanti:'Bağlantı', arazi:'Arazi ve mülkiyet', cevre:'Çevre ve ÇED',
+  imar:'İmar ve ruhsat', teknik:'Teknik', sozlesme:'Sözleşmeler', kurumsal:'Kurumsal', diger:'Sınıflandırılamadı'
+};
+const SEV = {kritik:'Kritik', yuksek:'Yüksek', orta:'Orta', dusuk:'Düşük'};
+const KIND = {gercek:['Belgeden gerçek','kind-gercek'], det:['Deterministik bulgu','kind-det'], ai:['AI yorumu','kind-ai'], hip:['Hipotez','kind-hip'], tam:['Tamlık kontrolü','kind-tam']};
+const FST = {acik:'Uzman incelemesi bekliyor', onay:'Uzman doğruladı', red:'Uzman reddetti'};
+const CST = {var:'Mevcut', kismi:'Kısmi', eksik:'Eksik', sure:'Süresi dolmuş', taslak:'Taslak / imzasız'};
+
+/* ---------- Örnek veriler ---------- */
+const S = {
+  proj:'p1', catSel:'all', fSel:'F-01', fSev:'all', fArea:'all', fSt:'all', onlyApproved:false,
+  projects:[
+    {id:'p1',name:'Akçalı RES',type:'RES',loc:'Balıkesir / Bigadiç',cap:'62,4 MWm / 60 MWe',stage:'Lisanslı · inşaat öncesi',deal:'Satın alma (hisse devri)',client:'Örnek Altyapı Fonu',due:'2026-11-20',state:'İncelemede',detailed:true},
+    {id:'p2',name:'Yazıören GES',type:'GES',loc:'Konya / Karapınar',cap:'22 MWp / 18 MWe',stage:'İşletmede (2023)',deal:'Proje finansmanı',client:'Örnek Kalkınma Bankası',due:'2026-11-05',state:'Rapor taslağı'},
+    {id:'p3',name:'Çamlık Hibrit',type:'Hibrit',loc:'Manisa / Soma',cap:'36 MWm RES + 9 MWp GES',stage:'Lisans tadil sürecinde',deal:'Satın alma',client:'Örnek Enerji Yatırım A.Ş.',due:'2026-12-15',state:'Data room bekleniyor'},
+    {id:'p4',name:'Ezine Depolamalı RES',type:'RES + BESS',loc:'Çanakkale / Ezine',cap:'40 MWe + 40 MWh',stage:'Önlisans',deal:'Geliştirme ortaklığı',client:'Örnek Altyapı Fonu',due:'2027-01-10',state:'Yeni'}
+  ],
+  docs:[
+    ['d1','EPDK_Lisans_EU-8812.pdf','lisans','Üretim lisansı',.99,12,'2019-03-14',''],
+    ['d2','Lisans_tadil_2023.pdf','lisans','Lisans tadil kararı',.97,4,'2023-06-08',''],
+    ['d3','EPDK_kurul_karari_sure_2024.pdf','lisans','Kurul kararı · tamamlama süresi',.95,3,'2024-09-12',''],
+    ['d4','TEIAS_baglanti_gorusu.pdf','baglanti','TEİAŞ bağlantı görüşü',.98,6,'2018-05-22',''],
+    ['d5','Baglanti_Anlasmasi_imzali.pdf','baglanti','Bağlantı anlaşması',.99,28,'2020-02-03',''],
+    ['d6','Sistem_Kullanim_Anlasmasi.docx','baglanti','Sistem kullanım anlaşması',.93,19,'2026-07-01','Taslak'],
+    ['d7','Tapu_kayitlari_T1-T13.pdf','arazi','Tapu kayıtları',.96,42,'2026-05-18',''],
+    ['d8','OGM_orman_izni_T7_T8.pdf','arazi','Orman izni (OGM)',.97,5,'2021-08-02','Süresi dolmuş'],
+    ['d9','Hazine_irtifak_sozlesmesi.pdf','arazi','Hazine irtifak sözleşmesi',.94,11,'2020-11-30',''],
+    ['d10','Kira_sozlesmesi_parsel_214.pdf','arazi','Kira sözleşmesi',.88,7,'2021-01-15',''],
+    ['d11','Kamulastirma_karari.pdf','arazi','Kamulaştırma kararı',.95,9,'2020-09-10',''],
+    ['d12','CED_Olumlu_Karari_2019.pdf','cevre','ÇED olumlu kararı',.99,3,'2019-01-24',''],
+    ['d13','CED_Raporu_nihai.pdf','cevre','ÇED raporu',.98,286,'2018-12-03',''],
+    ['d14','Ornitoloji_ilkbahar_2022.pdf','cevre','Ornitoloji izleme raporu',.92,64,'2022-06-30',''],
+    ['d15','Imar_plani_onay_1-5000.pdf','imar','İmar planı onayı',.96,8,'2021-04-19',''],
+    ['d16','Yapi_ruhsatlari_T1-T10.pdf','imar','Yapı ruhsatı',.97,30,'2022-03-11',''],
+    ['d17','Ruzgar_olcum_raporu_MD-01.pdf','teknik','Rüzgâr ölçüm raporu',.96,48,'2022-04-02',''],
+    ['d18','Enerji_uretim_tahmini_P50_P90.pdf','teknik','Enerji üretim tahmini',.97,36,'2022-05-20',''],
+    ['d19','Mikro_yerlesim_rev3.pdf','teknik','Mikro-yerleşim planı',.91,3,'2023-02-14',''],
+    ['d20','Turbin_teknik_sartname.pdf','teknik','Türbin teknik şartnamesi',.89,22,'2023-01-09',''],
+    ['d21','TSA_Turbin_Tedarik_Sozlesmesi.pdf','sozlesme','Türbin tedarik sözleşmesi (TSA)',.98,96,'2023-03-27',''],
+    ['d22','EPC_Sozlesmesi.pdf','sozlesme','EPC sözleşmesi',.96,140,'2026-06-15','İmzasız'],
+    ['d23','OM_teklif.pdf','sozlesme','O&M teklifi',.84,15,'2026-08-04','Teklif'],
+    ['d24','Ticaret_sicil_unvan_degisikligi.pdf','kurumsal','Ticaret sicil gazetesi',.95,2,'2024-02-20',''],
+    ['d25','Pay_defteri.pdf','kurumsal','Pay defteri',.9,6,'2026-04-01',''],
+    ['d26','scan_0042.pdf','diger','—',.41,1,'—',''],
+    ['d27','IMG_2231.jpg','diger','—',.38,1,'—','']
+  ].map(([id,file,cat,type,conf,pages,date,flag])=>({id,file,cat,type,conf,pages,date,flag})),
+  checklist:[
+    ['lisans','Üretim lisansı','var','d1',''],
+    ['lisans','Lisans tadilleri','var','d2',''],
+    ['lisans','Tamlama süresi / süre uzatım kararı','var','d3','Tamamlama: 14.03.2027'],
+    ['baglanti','TEİAŞ bağlantı görüşü','var','d4',''],
+    ['baglanti','Bağlantı anlaşması','var','d5','Unvan güncel değil (F-10)'],
+    ['baglanti','Sistem kullanım anlaşması','taslak','d6','İmzalı nüsha yok'],
+    ['arazi','Tapu kayıtları (tüm türbin parselleri)','var','d7',''],
+    ['arazi','Orman izni','sure','d8','T7, T8 izni 02.08.2026\'da sona erdi'],
+    ['arazi','Hazine irtifak hakkı','var','d9',''],
+    ['arazi','Kamulaştırma kararı','var','d11',''],
+    ['arazi','Kira sözleşmesi şerhleri','kismi','d10','Parsel 214 şerhsiz'],
+    ['cevre','ÇED kararı','var','d12','Kapsam 12 türbin (F-01)'],
+    ['cevre','Ornitoloji izleme (iki göç dönemi)','kismi','d14','Yalnız ilkbahar'],
+    ['cevre','Gürültü ve gölge titremesi çalışması','eksik','',''],
+    ['imar','İmar planı onayı','var','d15',''],
+    ['imar','Yapı ruhsatları (13 türbin)','kismi','d16','10 / 13 türbin'],
+    ['teknik','Rüzgâr ölçümü (en az 12 ay)','kismi','d17','11 ay ölçüm'],
+    ['teknik','Enerji üretim tahmini (P50/P90)','var','d18',''],
+    ['teknik','Jeoteknik etüt raporu','eksik','',''],
+    ['teknik','Mikro-yerleşim planı','var','d19',''],
+    ['sozlesme','Türbin tedarik sözleşmesi','var','d21',''],
+    ['sozlesme','EPC sözleşmesi','taslak','d22','İmzasız'],
+    ['sozlesme','O&M sözleşmesi','taslak','d23','Teklif aşamasında'],
+    ['kurumsal','Ticaret sicil kayıtları','var','d24',''],
+    ['kurumsal','Pay defteri','var','d25','']
+  ].map(([cat,item,st,doc,note])=>({cat,item,st,doc,note})),
+  facts:[
+    {k:'Türbin sayısı',vals:[['13','Lisans tadil kararı','s. 2'],['13','TSA Ek-1','s. 14'],['13','Mikro-yerleşim rev3','s. 1'],['12','ÇED olumlu kararı','s. 2',1]],res:'celiski',f:'F-01'},
+    {k:'Kurulu güç (mekanik)',vals:[['62,4 MWm','Lisans tadil kararı','s. 2'],['13 × 4,8 MW','TSA Ek-1','s. 14'],['57,6 MWm','ÇED olumlu kararı','s. 2',1]],res:'celiski',f:'F-01'},
+    {k:'Kurulu güç (elektrik)',vals:[['60 MWe','Üretim lisansı','s. 1'],['60 MWe','Bağlantı anlaşması','s. 3'],['60 MWe','TEİAŞ bağlantı görüşü','s. 2']],res:'tutarli'},
+    {k:'Bağlantı noktası',vals:[['Bigadiç TM 154 kV','TEİAŞ bağlantı görüşü','s. 2'],['Bigadiç TM 154 kV','Bağlantı anlaşması','s. 4']],res:'tutarli'},
+    {k:'Lisans tarihi ve süresi',vals:[['14.03.2019 · 49 yıl','Üretim lisansı','s. 1']],res:'tek'},
+    {k:'Tesis tamamlama süresi',vals:[['14.03.2027','Kurul kararı 2024','s. 2']],res:'tek',f:'F-02'},
+    {k:'Şirket unvanı',vals:[['Akçalı Enerji Üretim A.Ş.','Ticaret sicil gazetesi','s. 1'],['Akçalı Rüzgâr Elektrik Üretim A.Ş.','Bağlantı anlaşması','s. 1',1]],res:'celiski',f:'F-10'},
+    {k:'Yıllık üretim (P50 / P90 1 yıl)',vals:[['182,6 / 158,2 GWh','Enerji üretim tahmini','s. 9']],res:'tek'},
+    {k:'Kapasite faktörü (P50)',vals:[['%33,4','Hesaplandı: 182,6 GWh ÷ (62,4 MW × 8.760 saat)','—']],res:'hesap'},
+    {k:'Rüzgâr ölçüm dönemi',vals:[['01.04.2021 – 28.02.2022 (11 ay)','Rüzgâr ölçüm raporu','s. 4']],res:'tek',f:'F-05'},
+    {k:'Orman izni bitiş tarihi (T7, T8)',vals:[['02.08.2026','Orman izni (OGM)','s. 1',1]],res:'gecmis',f:'F-03'}
+  ],
+  findings:[
+    {id:'F-01',sev:'kritik',area:'cevre',kind:'det',conf:.97,st:'onay',
+     t:'ÇED kararı 12 türbini kapsıyor, proje 13 türbinle kurgulanmış',
+     why:'Üç belgede türbin sayısı 13, ÇED olumlu kararında 12. Kurulu güç de ÇED\'de 57,6 MWm, lisansta 62,4 MWm. 13. türbin ÇED kapsamı dışında kalıyor.',
+     ev:[['ÇED olumlu kararı','CED_Olumlu_Karari_2019.pdf','2','… proje kapsamında ','12 adet rüzgâr türbini ile toplam 57,6 MWm',' kurulu güçte rüzgâr enerji santrali kurulması planlanmaktadır …'],
+         ['TSA Ek-1','TSA_Turbin_Tedarik_Sozlesmesi.pdf','14','Teslim kapsamı: ','13 (on üç) adet 4,8 MW',' nominal güçte rüzgâr türbini, kule ve kontrol sistemleri dahil.'],
+         ['Mikro-yerleşim rev3','Mikro_yerlesim_rev3.pdf','1','Koordinat tablosu ','T1 – T13',' (ITRF96, 3° dilim)']],
+     reco:'13. türbin için ÇED kapsam değişikliği veya "ÇED gerekli değildir" kararı alınması kapanış öncesi şart (CP) olarak konulmalı.',
+     log:['Sistem tespit etti · 28.10.2026 14:02','Ayşe Demir doğruladı · 29.10.2026 10:15']},
+    {id:'F-02',sev:'yuksek',area:'lisans',kind:'ai',conf:.86,st:'acik',
+     t:'Lisanstaki tamamlama süresi (14.03.2027) EPC programıyla karşılanamıyor',
+     why:'İnşaat henüz başlamadı. EPC sözleşmesi işe başlamadan itibaren 18 ay öngörüyor. Kasım 2026\'da başlansa bile ticari işletme en erken Mayıs 2028. Bu, lisanstaki süreden yaklaşık 14 ay sonra.',
+     ev:[['Kurul kararı 2024','EPDK_kurul_karari_sure_2024.pdf','2','… tesis tamamlama süresi ','14.03.2027 tarihine kadar',' uzatılmıştır.'],
+         ['EPC sözleşmesi (imzasız)','EPC_Sozlesmesi.pdf','47','Ticari işletme tarihi: İşe başlama tarihinden itibaren ','18 (on sekiz) ay',' içinde.']],
+     reco:'Satıcıdan EPDK\'ya süre uzatım başvurusu ve başvuru takvimi istenmeli; gecikme halinde teminat ve lisans iptali riski raporda belirtilmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:02']},
+    {id:'F-03',sev:'yuksek',area:'arazi',kind:'det',conf:.99,st:'onay',
+     t:'T7 ve T8 için orman izni 02.08.2026\'da sona ermiş',
+     why:'İzin süresi belgede açıkça yazıyor ve bugünün tarihinden önce. Data room\'da yenileme başvurusu veya yeni izin yok.',
+     ev:[['Orman izni (OGM)','OGM_orman_izni_T7_T8.pdf','1','… izin süresi 5 (beş) yıl olup ','02.08.2026 tarihinde sona erecektir','.']],
+     reco:'Yenileme başvurusu ve OGM yazışmaları istenmeli; T7–T8 için izin yenilenmesi CP olarak konulmalı.',
+     log:['Sistem tespit etti · 28.10.2026 14:02','Ayşe Demir doğruladı · 29.10.2026 10:22']},
+    {id:'F-04',sev:'yuksek',area:'imar',kind:'det',conf:.98,st:'acik',
+     t:'T11, T12 ve T13 için yapı ruhsatı yok',
+     why:'Ruhsat dosyası yalnız T1–T10\'u listeliyor. Mikro-yerleşim ve TSA 13 türbin gösteriyor.',
+     ev:[['Yapı ruhsatları','Yapi_ruhsatlari_T1-T10.pdf','1','Ruhsat listesi: ','T1, T2, T3, T4, T5, T6, T7, T8, T9, T10','']],
+     reco:'Kalan üç türbin için ruhsat başvuru durumu sorulmalı. T11–T13\'ün ÇED kapsamı (F-01) netleşmeden ruhsat alınamayabilir.',
+     log:['Sistem tespit etti · 28.10.2026 14:02']},
+    {id:'F-05',sev:'orta',area:'teknik',kind:'ai',conf:.78,st:'acik',
+     t:'Rüzgâr ölçümü 11 ay; finansman için genelde en az 12 ay beklenir',
+     why:'Ölçüm dönemi 12 aydan kısa. Mevsimsellik tam yakalanmamış olabilir ve P90 belirsizliği artar.',
+     ev:[['Rüzgâr ölçüm raporu','Ruzgar_olcum_raporu_MD-01.pdf','4','Ölçüm dönemi: ','01.04.2021 – 28.02.2022','; veri kullanılabilirliği %96,1.']],
+     reco:'Uzun dönem korelasyon yöntemi ve belirsizlik analizi bağımsız teknik danışmanca gözden geçirilmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:03']},
+    {id:'F-06',sev:'orta',area:'cevre',kind:'gercek',conf:.94,st:'acik',
+     t:'Ornitoloji izlemesi yalnız ilkbahar göç dönemini kapsıyor',
+     why:'Rapor sonbahar göç dönemini kapsamıyor. Kreditörler genellikle iki göç dönemini birlikte ister.',
+     ev:[['Ornitoloji izleme raporu','Ornitoloji_ilkbahar_2022.pdf','3','Gözlem dönemi: ','15 Mart – 31 Mayıs 2022',' (ilkbahar göçü).']],
+     reco:'Sonbahar dönemi izlemesi yapılmış mı sorulmalı; yoksa operasyon dönemi izleme taahhüdü değerlendirilmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:03']},
+    {id:'F-07',sev:'orta',area:'teknik',kind:'tam',conf:1,st:'acik',
+     t:'Jeoteknik etüt raporu data room\'da yok',
+     why:'RES satın alma kontrol listesinde zorunlu belge. Hiçbir dosya bu türe sınıflandırılmadı.',
+     ev:[],
+     reco:'Türbin temelleri için jeoteknik etüt raporu talep edilmeli.',
+     log:['Tamlık kontrolü · 28.10.2026 14:01']},
+    {id:'F-08',sev:'orta',area:'sozlesme',kind:'det',conf:.96,st:'acik',
+     t:'EPC sözleşmesi imzasız, sistem kullanım anlaşması taslak',
+     why:'İki belgede imza sayfası boş veya "TASLAK" filigranı var.',
+     ev:[['EPC sözleşmesi','EPC_Sozlesmesi.pdf','140','İmza sayfası: ','[imza alanı boş]',''],
+         ['Sistem kullanım anlaşması','Sistem_Kullanim_Anlasmasi.docx','1','','TASLAK – müzakere aşamasında','']],
+     reco:'İmzalı nüshalar veya güncel müzakere durumu istenmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:03']},
+    {id:'F-09',sev:'orta',area:'arazi',kind:'ai',conf:.74,st:'acik',
+     t:'Parsel 214 (T11) kira sözleşmesi tapuya şerh edilmemiş görünüyor',
+     why:'Sözleşme şerhe izin veriyor ama tapu kaydının şerhler bölümünde kayıt bulunamadı. Tapu sayfası düşük çözünürlüklü, okuma hatası olabilir.',
+     ev:[['Kira sözleşmesi','Kira_sozlesmesi_parsel_214.pdf','6','… işbu sözleşme ','taraflarca tapuya şerh ettirilebilir','.'],
+         ['Tapu kayıtları','Tapu_kayitlari_T1-T13.pdf','31','Ada 118 Parsel 214 · Şerhler: ','[kayıt bulunamadı]','']],
+     reco:'Güncel TAKBİS kaydı istenmeli; şerh yoksa kapanıştan önce şerh verilmesi CP olarak konulmalı.',
+     log:['Sistem tespit etti · 28.10.2026 14:04']},
+    {id:'F-10',sev:'dusuk',area:'kurumsal',kind:'det',conf:.95,st:'acik',
+     t:'Bağlantı anlaşmasındaki şirket unvanı güncel değil',
+     why:'Şirket 2024\'te unvan değiştirmiş. Bağlantı anlaşması eski unvanla duruyor.',
+     ev:[['Ticaret sicil gazetesi','Ticaret_sicil_unvan_degisikligi.pdf','1','Yeni unvan: ','Akçalı Enerji Üretim A.Ş.',''],
+         ['Bağlantı anlaşması','Baglanti_Anlasmasi_imzali.pdf','1','Taraf: ','Akçalı Rüzgâr Elektrik Üretim A.Ş.','']],
+     reco:'TEİAŞ\'a unvan değişikliği bildirimi yapılıp yapılmadığı teyit edilmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:04']},
+    {id:'F-11',sev:'dusuk',area:'baglanti',kind:'hip',conf:.6,st:'acik',
+     t:'Mekanik güç bağlantı kapasitesini aşıyor; kısıtlama kaybı hesaba katılmamış olabilir',
+     why:'62,4 MWm kurulu güç 60 MWe bağlantı kapasitesinin üzerinde. Üretim tahmininde bu kayıp ayrıca görünmüyor. Bu bir hipotez; tahmin raporunda başka bir yerde ele alınmış olabilir.',
+     ev:[['Enerji üretim tahmini','Enerji_uretim_tahmini_P50_P90.pdf','9','Kayıplar: elektriksel %2,1, kullanılabilirlik %3,0, iz etkisi %7,4','',' (şebeke kısıtlaması kalemi yok)']],
+     reco:'Teknik danışmandan kısıtlama kaybının modellenip modellenmediği teyit edilmeli.',
+     log:['Sistem tespit etti · 28.10.2026 14:05']}
+  ],
+  uploading:[]
+};
+const P = () => S.projects.find(p=>p.id===S.proj);
+const F = id => S.findings.find(f=>f.id===id);
+const D = id => S.docs.find(d=>d.id===id);
+
+/* ---------- Yardımcılar ---------- */
+const sev = s => `<span class="sev sev-${s}">${SEV[s]}</span>`;
+const kind = k => `<span class="kind ${KIND[k][1]}">${KIND[k][0]}</span>`;
+const fst = s => `<span class="st st-${s}">${FST[s]}</span>`;
+const cst = s => `<span class="st st-${s}">${CST[s]}</span>`;
+const confTxt = c => `<span class="conf ${c<.8?'low':''}">%${Math.round(c*100)}</span>`;
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>t.hidden=true,3000); }
+function modal(html){ document.getElementById('modal-root').innerHTML=`<div class="modal-bg" onclick="if(event.target===this)App.close()"><div class="modal" role="dialog" aria-modal="true">${html}</div></div>`; const f=document.querySelector('.modal input,.modal select,.modal button'); f&&f.focus(); }
+function close(){ document.getElementById('modal-root').innerHTML=''; }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') close(); });
+const completeness = (list=S.checklist) => Math.round(list.reduce((s,c)=>s+(c.st==='var'?1:c.st==='kismi'||c.st==='taslak'?.5:0),0)/list.length*100);
+
+/* ---------- Yönlendirme ---------- */
+const ROUTES=['giris','projeler','ozet','dataroom','tamlik','bilgiler','bulgular','rapor'];
+const route=()=>{ const h=location.hash.slice(1); return ROUTES.includes(h)?h:'giris'; };
+function go(r){ document.querySelector('.app')?.classList.remove('nav-open'); if(location.hash.slice(1)===r) render(); else location.hash=r; window.scrollTo(0,0); }
+window.addEventListener('hashchange',render);
+
+/* ---------- Giriş ---------- */
+function vGiris(){
+  return `<div class="auth">
+  <section class="auth-art">
+    <div class="brand"><div class="brand-mark">P3A</div><div class="brand-name">P3A Due Diligence<span style="color:inherit;opacity:.75">RES · GES · BESS · Hibrit</span></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <h1>Data room'daki riskler kapanıştan önce görünsün.</h1>
+      <p class="lead">Enerji projesinin belgelerini yükleyin. P3A belgeleri sınıflandırır, eksikleri ve çelişkileri bulur, her bulguyu kaynak sayfasıyla birlikte uzman onayına sunar.</p>
+    </div>
+    <div class="flow">
+      <div><b>01</b><span>Data room yükleme ve otomatik sınıflandırma</span></div>
+      <div><b>02</b><span>Tamlık kontrolü: hangi belge var, hangisi eksik veya süresi dolmuş</span></div>
+      <div><b>03</b><span>Kritik proje bilgileri ve belgeler arası tutarlılık</span></div>
+      <div><b>04</b><span>Kaynağa bağlı issue list, uzman doğrulaması ve DD raporu</span></div>
+    </div>
+  </section>
+  <section class="auth-form">
+    <form onsubmit="event.preventDefault();App.login()">
+      <div><span class="demo-tag" style="display:inline-block">Prototip · örnek verilerle</span></div>
+      <div><h2>Giriş yapın</h2><p class="muted small" style="margin-top:4px">Bilgiler örnek olarak dolduruldu; doğrudan devam edebilirsiniz.</p></div>
+      <div class="field"><label for="li-mail">E-posta</label><input id="li-mail" type="email" value="alperen@p3a-ornek.com" required></div>
+      <div class="field"><label for="li-pw">Şifre</label><input id="li-pw" type="password" value="ornek-sifre-123" required></div>
+      <button class="btn primary" style="justify-content:center">Giriş yap</button>
+      <button type="button" class="btn" style="justify-content:center" onclick="App.toast('Kurumsal SSO gerçek sürümde bağlanır (prototip).')">Kurumsal hesapla (SSO) giriş</button>
+    </form>
+  </section></div>`;
+}
+
+/* ---------- Kabuk ---------- */
+function shell(r, body){
+  const p=P(); const open=S.findings.filter(f=>f.st==='acik').length;
+  const nav=(id,t,extra='')=>`<a href="#${id}" class="${r===id?'on':''}">${t}${extra}</a>`;
+  return `<div class="app">
+  <aside class="side" aria-label="Ana menü">
+    <div class="brand"><div class="brand-mark">P3A</div><div class="brand-name">P3A Due Diligence<span>Energy Intelligence</span></div></div>
+    <nav class="nav">
+      ${nav('projeler','Projeler')}
+      <div class="label">Aktif proje</div>
+      <div class="proj-card"><b>${esc(p.name)}</b><span class="small muted">${esc(p.deal)}</span></div>
+      ${nav('ozet','Özet')}
+      ${nav('dataroom','Data room',`<span class="small muted">${S.docs.length}</span>`)}
+      ${nav('tamlik','Tamlık kontrolü',`<span class="small muted">%${completeness()}</span>`)}
+      ${nav('bilgiler','Proje bilgileri')}
+      ${nav('bulgular','Bulgular',open?`<span class="count">${open}</span>`:'')}
+      ${nav('rapor','DD raporu')}
+    </nav>
+    <div class="side-foot">
+      <span class="label">Uzman doğrulaması</span>
+      <div class="meter"><i style="width:${S.findings.filter(f=>f.st!=='acik').length/S.findings.length*100}%;background:var(--ok)"></i></div>
+      <span class="small muted">${S.findings.filter(f=>f.st!=='acik').length} / ${S.findings.length} bulgu incelendi · teslim ${fmtDate(p.due)}</span>
+    </div>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <button class="btn sm menu-btn" onclick="document.querySelector('.app').classList.toggle('nav-open')" aria-label="Menüyü aç">Menü</button>
+      <select id="proj-sel" aria-label="Proje seç" onchange="App.openProject(this.value)">${S.projects.map(x=>`<option value="${x.id}" ${x.id===S.proj?'selected':''}>${esc(x.name)} · ${esc(x.type)}</option>`).join('')}</select>
+      <div class="spacer"></div>
+      <span class="demo-tag">Prototip · örnek veri</span>
+      <button class="btn ghost sm" onclick="App.go('giris')">Çıkış</button>
+      <div class="avatar" title="Alperen Gültekin">AG</div>
+    </header>
+    <main id="view">${body}</main>
+  </div></div>`;
+}
+
+/* ---------- Projeler ---------- */
+function vProjeler(){
+  return `<div class="head"><div><h1>Projeler</h1><p class="muted">${S.projects.length} due diligence çalışması</p></div><button class="btn primary" onclick="App.newProject()">Yeni DD projesi</button></div>
+  <div class="card"><div class="tw"><table class="t"><thead><tr><th>Proje</th><th>Kapasite</th><th>Aşama</th><th>İşlem</th><th>Müşteri</th><th>Teslim</th><th>Durum</th></tr></thead><tbody>
+  ${S.projects.map(p=>`<tr class="click" onclick="App.openProject('${p.id}')"><td><div class="who">${esc(p.name)}</div><div class="sub">${esc(p.type)} · ${esc(p.loc)}</div></td><td class="mono">${esc(p.cap)}</td><td>${esc(p.stage)}</td><td>${esc(p.deal)}</td><td>${esc(p.client)}</td><td class="mono">${fmtDate(p.due)}</td><td><span class="st ${p.state==='İncelemede'?'st-acik':p.state==='Rapor taslağı'?'st-onay':'st-red'}">${esc(p.state)}</span></td></tr>`).join('')}
+  </tbody></table></div></div>
+  <p class="small muted">Prototipte ayrıntılı veri yalnız Akçalı RES için var.</p>`;
+}
+function newProject(){
+  modal(`<div class="card-h"><h2>Yeni DD projesi</h2><button class="btn ghost sm" onclick="App.close()">Kapat</button></div>
+  <form class="card-b fgrid" onsubmit="event.preventDefault();App.saveProject()">
+    <div class="field full"><label for="np-name">Proje adı</label><input id="np-name" required placeholder="Örn. Kırkağaç GES"></div>
+    <div class="field"><label for="np-type">Varlık sınıfı</label><select id="np-type"><option>RES</option><option>GES</option><option>BESS</option><option>Hibrit</option></select></div>
+    <div class="field"><label for="np-deal">İşlem türü</label><select id="np-deal"><option>Satın alma</option><option>Proje finansmanı</option><option>Yatırım</option><option>Geliştirme ortaklığı</option></select></div>
+    <div class="field"><label for="np-loc">İl / ilçe</label><input id="np-loc" placeholder="Örn. Manisa / Kırkağaç"></div>
+    <div class="field"><label for="np-cap">Kurulu güç</label><input id="np-cap" placeholder="Örn. 30 MWp / 25 MWe"></div>
+    <div class="field"><label for="np-stage">Proje aşaması</label><select id="np-stage"><option>Önlisans</option><option>Lisanslı · inşaat öncesi</option><option>İnşaatta</option><option>İşletmede</option></select></div>
+    <div class="field"><label for="np-due">Rapor teslim tarihi</label><input id="np-due" type="date" value="2026-12-31"></div>
+    <p class="full small muted">Kontrol listesi varlık sınıfı ve aşamaya göre otomatik seçilir.</p>
+    <div class="full row" style="justify-content:flex-end"><button type="button" class="btn" onclick="App.close()">Vazgeç</button><button class="btn primary">Projeyi oluştur</button></div>
+  </form>`);
+}
+
+/* ---------- Özet ---------- */
+function vOzet(){
+  const p=P(); const areas=['lisans','baglanti','arazi','cevre','imar','teknik','sozlesme','kurumsal'];
+  const cnt=(a,s)=>S.findings.filter(f=>f.area===a&&f.sev===s).length;
+  const cls={kritik:'k',yuksek:'y',orta:'o',dusuk:''};
+  const matrix=`<div class="matrix"><div></div>${Object.values(SEV).map(s=>`<div class="h">${s}</div>`).join('')}${areas.map(a=>`<div class="a">${CATS[a]}</div>${Object.keys(SEV).map(s=>{const n=cnt(a,s);return `<div class="c ${n?cls[s]:'z'}">${n||'·'}</div>`;}).join('')}`).join('')}</div>`;
+  const top=S.findings.filter(f=>f.sev==='kritik'||f.sev==='yuksek');
+  const n=s=>S.findings.filter(f=>f.sev===s).length;
+  return `<div class="head"><div><h1>${esc(p.name)}</h1><p class="muted">${esc(p.deal)} · ${esc(p.client)} · rapor teslimi ${fmtDate(p.due)}</p></div><div class="row"><button class="btn" onclick="App.go('dataroom')">Data room</button><button class="btn primary" onclick="App.go('bulgular')">Bulguları incele</button></div></div>
+  <div class="kpis">
+    <div class="card kpi"><span class="label">Belgeler</span><b>${S.docs.length}</b><span class="delta">${S.docs.filter(d=>d.cat==='diger').length} belge sınıflandırılamadı</span></div>
+    <div class="card kpi"><span class="label">Tamlık</span><b>%${completeness()}</b><span class="delta">${S.checklist.filter(c=>c.st==='eksik').length} eksik, ${S.checklist.filter(c=>c.st==='sure').length} süresi dolmuş</span></div>
+    <div class="card kpi"><span class="label">Bulgular</span><b>${S.findings.length}</b><span class="delta"><span style="color:var(--crit);font-weight:700">${n('kritik')} kritik</span> · ${n('yuksek')} yüksek · ${n('orta')} orta</span></div>
+    <div class="card kpi"><span class="label">Uzman onayı</span><b style="color:var(--ok)">${S.findings.filter(f=>f.st==='onay').length}/${S.findings.length}</b><span class="delta">Rapora yalnız doğrulananlar girer</span></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-h"><h2>Kırmızı bayraklar</h2><a class="small" href="#bulgular">Tüm bulgular</a></div>
+      <div class="tw"><table class="t"><tbody>${top.map(f=>`<tr class="click" onclick="App.openFinding('${f.id}')"><td class="mono muted">${f.id}</td><td><div class="who">${esc(f.t)}</div><div class="row" style="margin-top:6px">${kind(f.kind)} ${fst(f.st)}</div></td><td>${sev(f.sev)}</td></tr>`).join('')}</tbody></table></div></div>
+    <div class="card"><div class="card-h"><h2>Risk dağılımı</h2><span class="small muted">Alan × seviye</span></div><div class="card-b">${matrix}</div></div>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="card-h"><h2>Proje künyesi</h2><a class="small" href="#bilgiler">Kaynaklarıyla gör</a></div>
+      <div class="card-b"><dl class="facts" style="margin:0">
+        <dt>Varlık</dt><dd>${esc(p.type)} · ${esc(p.loc)}</dd>
+        <dt>Kurulu güç</dt><dd>${esc(p.cap)} <span class="sev sev-kritik" style="margin-left:6px">ÇED ile çelişkili</span></dd>
+        <dt>Türbin</dt><dd>13 × 4,8 MW</dd>
+        <dt>Bağlantı</dt><dd>Bigadiç TM 154 kV</dd>
+        <dt>Lisans</dt><dd>14.03.2019 · 49 yıl</dd>
+        <dt>Aşama</dt><dd>${esc(p.stage)}</dd>
+        <dt>P50 üretim</dt><dd>182,6 GWh/yıl · KF %33,4</dd>
+      </dl></div></div>
+    <div class="card"><div class="card-h"><h2>Tarihler ve yükümlülükler</h2></div>
+      <div class="card-b timeline">
+        <div class="tl past"><span class="d">02.08.2026</span><span>Orman izni sona erdi (T7, T8) · <a href="#bulgular" onclick="App.openFinding('F-03');return false">F-03</a></span></div>
+        <div class="tl"><span class="d">20.11.2026</span><span>DD raporu teslimi</span></div>
+        <div class="tl"><span class="d">14.03.2027</span><span>Lisans tesis tamamlama süresi · <a href="#bulgular" onclick="App.openFinding('F-02');return false">F-02</a></span></div>
+        <div class="tl"><span class="d">14.03.2068</span><span>Üretim lisansı bitişi</span></div>
+      </div></div>
+  </div>`;
+}
+
+/* ---------- Data room ---------- */
+function vDataroom(){
+  const cats=Object.keys(CATS);
+  const list = S.catSel==='all'?S.docs:S.docs.filter(d=>d.cat===S.catSel);
+  return `<div class="head"><div><h1>Data room</h1><p class="muted">${S.docs.length} belge · ${S.docs.reduce((s,d)=>s+d.pages,0)} sayfa · son yükleme 28.10.2026</p></div></div>
+  <label class="drop" id="drop" for="file-in"><div><b>Belge ekleyin</b><div class="small muted">Dosyaları sürükleyin ya da tıklayın. PDF, Word, Excel, DWG/PDF, görsel veya ZIP.</div></div><span class="btn sm">Dosya seç</span>
+    <input id="file-in" type="file" multiple hidden onchange="App.upload(this.files)"></label>
+  ${S.uploading.length?`<div class="card"><div class="card-b" style="display:flex;flex-direction:column;gap:8px">${S.uploading.map(u=>`<div class="row" style="justify-content:space-between"><span class="fname">${esc(u)}</span><span class="st st-wait">Sınıflandırılıyor</span></div>`).join('')}</div></div>`:''}
+  <div class="dr">
+    <div class="card cats" role="tablist">
+      <button class="${S.catSel==='all'?'on':''}" onclick="App.setCat('all')"><span>Tümü</span><span class="n">${S.docs.length}</span></button>
+      ${cats.map(c=>`<button class="${S.catSel===c?'on':''}" onclick="App.setCat('${c}')"><span>${CATS[c]}</span><span class="n" ${c==='diger'&&S.docs.some(d=>d.cat==='diger')?'style="color:var(--warn);font-weight:700"':''}>${S.docs.filter(d=>d.cat===c).length}</span></button>`).join('')}
+    </div>
+    <div class="card"><div class="tw"><table class="t"><thead><tr><th>Dosya</th><th>Belge türü</th><th class="num">Güven</th><th class="num">Sayfa</th><th>Belge tarihi</th><th></th></tr></thead><tbody>
+    ${list.length?list.map(d=>`<tr class="click" onclick="App.docInfo('${d.id}')"><td><div class="fname">${esc(d.file)}</div><div class="sub">${CATS[d.cat]}</div></td><td>${d.cat==='diger'?`<select id="rc-${d.id}" onclick="event.stopPropagation()" onchange="App.reclass('${d.id}',this.value)" style="border:1px solid var(--mark);background:var(--mark-soft);border-radius:6px;padding:4px 6px"><option value="">Kategori seçin…</option>${cats.filter(c=>c!=='diger').map(c=>`<option value="${c}">${CATS[c]}</option>`).join('')}</select>`:esc(d.type)}</td><td class="num">${confTxt(d.conf)}</td><td class="num">${d.pages}</td><td class="mono">${d.date==='—'?'—':fmtDate(d.date)}</td><td>${d.flag?`<span class="st ${d.flag==='Süresi dolmuş'?'st-sure':'st-taslak'}">${d.flag}</span>`:''}</td></tr>`).join(''):`<tr><td colspan="6" class="empty">Bu kategoride belge yok.</td></tr>`}
+    </tbody></table></div></div>
+  </div>`;
+}
+function docInfo(id){
+  const d=D(id); const rel=S.findings.filter(f=>f.ev.some(e=>e[1]===d.file));
+  modal(`<div class="card-h"><h2 style="word-break:break-all">${esc(d.file)}</h2><button class="btn ghost sm" onclick="App.close()">Kapat</button></div>
+  <div class="card-b" style="display:flex;flex-direction:column;gap:16px">
+    <dl class="facts" style="margin:0"><dt>Kategori</dt><dd>${CATS[d.cat]}</dd><dt>Belge türü</dt><dd>${esc(d.type)}</dd><dt>Sınıflandırma güveni</dt><dd>${confTxt(d.conf)}</dd><dt>Sayfa</dt><dd>${d.pages}</dd><dt>Belge tarihi</dt><dd>${d.date==='—'?'—':fmtDate(d.date)}</dd>${d.flag?`<dt>Not</dt><dd>${d.flag}</dd>`:''}</dl>
+    <div><div class="label" style="margin-bottom:8px">Bu belgeye dayanan bulgular</div>${rel.length?rel.map(f=>`<button class="btn sm" style="margin:0 6px 6px 0" onclick="App.openFinding('${f.id}')">${f.id} · ${SEV[f.sev]}</button>`).join(''):'<span class="small muted">Bulgu yok.</span>'}</div>
+  </div>`);
+}
+
+/* ---------- Tamlık ---------- */
+function vTamlik(){
+  const cats=[...new Set(S.checklist.map(c=>c.cat))];
+  const p=P();
+  return `<div class="head"><div><h1>Tamlık kontrolü</h1><p class="muted">${esc(p.type)} · ${esc(p.stage)} · satın alma kontrol listesi (${S.checklist.length} kalem)</p></div>
+    <button class="btn" onclick="App.toast('Eksik belge talep listesi satıcıya gönderilecek şekilde hazırlanır (prototip).')">Eksik belge talep listesi</button></div>
+  <div class="kpis">
+    ${['var','kismi','taslak','eksik'].map(s=>`<div class="card kpi"><span class="label">${CST[s]}</span><b style="color:${s==='var'?'var(--ok)':s==='eksik'?'var(--bad)':'var(--warn)'}">${S.checklist.filter(c=>c.st===s||(s==='eksik'&&c.st==='sure')).length}</b><span class="delta">${s==='eksik'?'Süresi dolmuş dahil':s==='var'?'Kontrol listesinde tam':'Kısmen karşılanıyor'}</span></div>`).join('')}
+  </div>
+  <div class="card"><div class="tw"><table class="t"><thead><tr><th>Gereken belge</th><th>Durum</th><th>Not</th><th>Data room</th></tr></thead><tbody>
+  ${cats.map(c=>{ const items=S.checklist.filter(x=>x.cat===c); return `<tr class="grp"><td colspan="4">${CATS[c]} · %${completeness(items)}</td></tr>`+items.map(x=>`<tr><td>${esc(x.item)}</td><td>${cst(x.st)}</td><td class="small">${esc(x.note)||'<span class="muted">—</span>'}</td><td>${x.doc?`<a href="#dataroom" onclick="event.preventDefault();App.docInfo('${x.doc}')" class="small">${esc(D(x.doc).file)}</a>`:'<span class="small muted">Belge yok</span>'}</td></tr>`).join(''); }).join('')}
+  </tbody></table></div></div>`;
+}
+
+/* ---------- Proje bilgileri ---------- */
+function vBilgiler(){
+  const res={celiski:['st-eksik','Çelişki'],tutarli:['st-var','Tutarlı'],tek:['st-red','Tek kaynak'],hesap:['st-onay','Hesaplandı'],gecmis:['st-sure','Tarihi geçmiş']};
+  return `<div class="head"><div><h1>Proje bilgileri</h1><p class="muted">Belgelerden çıkarılan kritik bilgiler ve kaynakları. Kırmızı değerler diğer kaynaklarla çelişiyor.</p></div></div>
+  <div class="card"><div class="tw"><table class="t"><thead><tr><th>Bilgi</th><th>Değer · kaynak</th><th>Sonuç</th></tr></thead><tbody>
+  ${S.facts.map(f=>`<tr><td class="who" style="min-width:160px">${esc(f.k)}</td><td>${f.vals.map(v=>`<span class="src ${v[3]?'bad':''}"><b>${esc(v[0])}</b><span class="${v[3]?'':'muted'}">${esc(v[1])}${v[2]!=='—'?' · '+v[2]:''}</span></span>`).join('')}</td><td style="white-space:nowrap"><span class="st ${res[f.res][0]}">${res[f.res][1]}</span>${f.f?` <a href="#bulgular" class="small" onclick="App.openFinding('${f.f}');return false">${f.f}</a>`:''}</td></tr>`).join('')}
+  </tbody></table></div></div>
+  <p class="small muted">Tutarlılık kontrolleri deterministik kurallarla yapılır: aynı bilgi birden fazla belgede geçiyorsa değerler karşılaştırılır, tarihler bugünle (${fmtDate(TODAY)}) kıyaslanır.</p>`;
+}
+
+/* ---------- Bulgular ---------- */
+function filtered(){
+  return S.findings.filter(f=>(S.fSev==='all'||f.sev===S.fSev)&&(S.fArea==='all'||f.area===S.fArea)&&(S.fSt==='all'||f.st===S.fSt));
+}
+function vBulgular(){
+  const list=filtered(); if(!list.find(f=>f.id===S.fSel)&&list[0]) S.fSel=list[0].id;
+  const f=F(S.fSel);
+  const areas=[...new Set(S.findings.map(f=>f.area))];
+  return `<div class="head"><div><h1>Bulgular</h1><p class="muted">Issue list · her bulgu kaynak belgeye bağlı ve uzman onayı bekliyor</p></div>
+    <div class="row">
+      <select id="flt-sev" class="chip" aria-label="Seviye" onchange="App.flt('fSev',this.value)"><option value="all">Tüm seviyeler</option>${Object.entries(SEV).map(([k,v])=>`<option value="${k}" ${S.fSev===k?'selected':''}>${v}</option>`).join('')}</select>
+      <select id="flt-area" class="chip" aria-label="Alan" onchange="App.flt('fArea',this.value)"><option value="all">Tüm alanlar</option>${areas.map(a=>`<option value="${a}" ${S.fArea===a?'selected':''}>${CATS[a]}</option>`).join('')}</select>
+      <select id="flt-st" class="chip" aria-label="Durum" onchange="App.flt('fSt',this.value)"><option value="all">Tüm durumlar</option>${Object.entries(FST).map(([k,v])=>`<option value="${k}" ${S.fSt===k?'selected':''}>${v}</option>`).join('')}</select>
+    </div></div>
+  <div class="issues">
+    <div class="card ilist">${list.length?list.map(x=>`<button class="irow ${x.id===S.fSel?'on':''}" onclick="App.selFinding('${x.id}')"><span class="id">${x.id}</span><span class="ttl">${esc(x.t)}</span><span class="meta">${sev(x.sev)} <span class="tag">${CATS[x.area]}</span> ${x.st!=='acik'?fst(x.st):''}</span></button>`).join(''):'<div class="empty">Bu filtreye uyan bulgu yok.</div>'}</div>
+    ${f?detail(f):'<div></div>'}
+  </div>`;
+}
+function detail(f){
+  return `<div class="card detail">
+    <div class="card-h"><div class="row"><span class="mono muted">${f.id}</span>${sev(f.sev)}${kind(f.kind)}</div>${fst(f.st)}</div>
+    <div class="card-b" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:19px">${esc(f.t)}</h2>
+      <div class="row small muted"><span>Alan: <b style="color:var(--fg)">${CATS[f.area]}</b></span><span>·</span><span>Sistem güveni: ${confTxt(f.conf)}</span></div>
+      <div class="why"><div class="label" style="margin-bottom:4px">Neden bu sonuç</div>${esc(f.why)}</div>
+      <div><div class="label" style="margin-bottom:8px">Kaynak ve kanıt (${f.ev.length})</div>
+        <div class="evid">${f.ev.length?f.ev.map(e=>`<div class="paper"><div class="ph"><span>${esc(e[1])}</span><span>s. ${e[2]}</span></div><q>${esc(e[3])}<mark>${esc(e[4])}</mark>${esc(e[5])}</q></div>`).join(''):'<div class="small muted">Bu bir tamlık bulgusu: kontrol listesindeki belge data room\'da bulunamadı.</div>'}</div></div>
+      <div class="reco"><div class="label" style="margin-bottom:4px">Öneri</div>${esc(f.reco)}</div>
+      <div class="fgrid">
+        <div class="field"><label for="ex-sev">Uzman seviyesi</label><select id="ex-sev">${Object.entries(SEV).map(([k,v])=>`<option value="${k}" ${f.sev===k?'selected':''}>${v}</option>`).join('')}</select></div>
+        <div class="field full"><label for="ex-note">Uzman notu</label><textarea id="ex-note" placeholder="Rapora girecek değerlendirme veya satıcıya sorulacak soru">${esc(f.note||'')}</textarea></div>
+      </div>
+      <div class="audit"><div class="label">Denetim izi</div>${f.log.map(l=>`<span>${esc(l)}</span>`).join('')}</div>
+    </div>
+    <div class="row" style="justify-content:flex-end;padding:14px 18px;border-top:1px solid var(--line)">
+      <button class="btn danger" onclick="App.decide('${f.id}','red')">Reddet</button>
+      <button class="btn ok" onclick="App.decide('${f.id}','onay')">Doğrula ve rapora ekle</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- Rapor ---------- */
+function vRapor(){
+  const p=P();
+  const fs=S.findings.filter(f=>f.st!=='red'&&(!S.onlyApproved||f.st==='onay'));
+  const order=['kritik','yuksek','orta','dusuk'];
+  fs.sort((a,b)=>order.indexOf(a.sev)-order.indexOf(b.sev));
+  const red=fs.filter(f=>f.sev==='kritik'||f.sev==='yuksek');
+  const missing=S.checklist.filter(c=>c.st!=='var');
+  return `<div class="head"><div><h1>DD raporu</h1><p class="muted">Taslak · bulgular ve uzman notlarından otomatik üretilir</p></div>
+    <div class="row"><label class="check"><input id="only-ap" type="checkbox" ${S.onlyApproved?'checked':''} onchange="App.onlyAp(this.checked)"> <span>Yalnız uzman doğrulamış bulgular</span></label>
+    <button class="btn primary" onclick="App.toast('Word / PDF çıktısı gerçek sürümde üretilir (prototip).')">Word olarak indir</button></div></div>
+  <article class="report">
+    <div><div class="rk">Teknik ve izin due diligence raporu · taslak v0.3</div><h1 style="margin-top:6px">${esc(p.name)} · ${esc(p.cap)}</h1><p style="margin-top:6px">${esc(p.deal)} · Hazırlanan: ${esc(p.client)} · ${fmtDate(TODAY)}</p></div>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>1. Yönetici özeti</h2>
+      <p>Data room'da ${S.docs.length} belge (${S.docs.reduce((s,d)=>s+d.pages,0)} sayfa) incelendi. Kontrol listesine göre belge tamlığı %${completeness()}. Toplam ${fs.length} bulgu raporlandı; ${fs.filter(f=>f.sev==='kritik').length} kritik ve ${fs.filter(f=>f.sev==='yuksek').length} yüksek seviyeli.</p>
+      <p>En önemli konu, ÇED olumlu kararının 12 türbini kapsaması ve projenin 13 türbinle kurgulanmasıdır. Ayrıca lisanstaki tesis tamamlama süresi (14.03.2027) mevcut EPC programıyla karşılanamıyor ve T7–T8 orman izinlerinin süresi dolmuş durumda.</p></section>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>2. Kırmızı bayraklar</h2>
+      ${red.length?`<table><thead><tr><th>No</th><th>Bulgu</th><th>Seviye</th><th>Kaynak</th></tr></thead><tbody>${red.map(f=>`<tr><td>${f.id}</td><td>${esc(f.t)}${f.st!=='onay'?' <i style="color:#9a6312">(doğrulama bekliyor)</i>':''}</td><td class="rsev ${f.sev}">${SEV[f.sev].toUpperCase()}</td><td>${f.ev.map(e=>esc(e[0])+' s. '+e[2]).join('; ')||'Tamlık kontrolü'}</td></tr>`).join('')}</tbody></table>`:'<p>Doğrulanmış kırmızı bayrak yok.</p>'}</section>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>3. Kapanış öncesi şartlar (CP) ve talepler</h2>
+      <ol>${fs.filter(f=>f.sev!=='dusuk').map(f=>`<li>${esc(f.reco)} <span style="color:#6a6658">[${f.id}]</span></li>`).join('')}</ol></section>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>4. Alan bazında bulgular</h2>
+      <table><thead><tr><th>No</th><th>Alan</th><th>Bulgu</th><th>Tür</th><th>Seviye</th></tr></thead><tbody>${fs.map(f=>`<tr><td>${f.id}</td><td>${CATS[f.area]}</td><td>${esc(f.t)}${f.note?`<br><span style="color:#6a6658">Uzman notu: ${esc(f.note)}</span>`:''}</td><td>${KIND[f.kind][0]}</td><td class="rsev ${f.sev}">${SEV[f.sev]}</td></tr>`).join('')}</tbody></table></section>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>5. Eksik veya kısmi belgeler</h2>
+      <ul>${missing.map(c=>`<li><b>${esc(c.item)}</b> · ${CST[c.st]}${c.note?' · '+esc(c.note):''}</li>`).join('')}</ul></section>
+    <section style="display:flex;flex-direction:column;gap:10px"><h2>6. Kapsam ve sınırlamalar</h2>
+      <p>Bu rapor teknik, izin ve mevzuat, bağlantı, arazi, çevre ve sözleşme belgelerinin data room üzerinden incelenmesine dayanır. Saha ziyareti, finansal model, vergi ve sigorta incelemesi kapsam dışıdır. "AI yorumu" ve "hipotez" olarak işaretlenen bulgular uzman değerlendirmesi gerektirir.</p></section>
+  </article>`;
+}
+
+/* ---------- Çizim ---------- */
+function render(){
+  const r=route(); const root=document.getElementById('root'); close();
+  if(r==='giris'){ root.innerHTML=vGiris(); return; }
+  const views={projeler:vProjeler,ozet:vOzet,dataroom:vDataroom,tamlik:vTamlik,bilgiler:vBilgiler,bulgular:vBulgular,rapor:vRapor};
+  root.innerHTML=shell(r,views[r]());
+  if(r==='dataroom') bindDrop();
+}
+function bindDrop(){
+  const z=document.getElementById('drop'); if(!z) return;
+  ['dragenter','dragover'].forEach(e=>z.addEventListener(e,ev=>{ev.preventDefault();z.classList.add('over');}));
+  ['dragleave','drop'].forEach(e=>z.addEventListener(e,ev=>{ev.preventDefault();z.classList.remove('over');}));
+  z.addEventListener('drop',ev=>App.upload(ev.dataTransfer.files));
+}
+function guess(name){
+  const n=name.toLocaleLowerCase('tr');
+  const rules=[[/lisans|epdk/,'lisans','Lisans belgesi'],[/teias|teiaş|baglanti|bağlantı/,'baglanti','Bağlantı belgesi'],[/tapu|orman|kira|irtifak|kamulas/,'arazi','Arazi belgesi'],[/ced|çed|ornito|gurultu|gürültü/,'cevre','Çevre belgesi'],[/imar|ruhsat|kabul/,'imar','İmar / ruhsat belgesi'],[/olcum|ölçüm|uretim|üretim|jeotek|yerlesim|yerleşim/,'teknik','Teknik rapor'],[/epc|tsa|o&m|sozlesme|sözleşme/,'sozlesme','Sözleşme'],[/sicil|pay|ana sozlesme/,'kurumsal','Kurumsal belge']];
+  const m=rules.find(r=>r[0].test(n)); return m?[m[1],m[2],.9]:['diger','—',.45];
+}
+
+/* ---------- Eylemler ---------- */
+window.App={
+  go,toast,close,newProject,docInfo,
+  login(){ go('ozet'); toast('Hoş geldin, Alperen'); },
+  openProject(id){ const p=S.projects.find(x=>x.id===id); if(!p.detailed){ toast(`${p.name}: prototipte ayrıntılı veri yalnız Akçalı RES için var.`); const s=document.getElementById('proj-sel'); if(s) s.value=S.proj; return; } S.proj=id; go('ozet'); },
+  saveProject(){ const v=k=>document.getElementById(k).value.trim(); S.projects.push({id:'p'+Date.now(),name:v('np-name'),type:v('np-type'),loc:v('np-loc')||'—',cap:v('np-cap')||'—',stage:v('np-stage'),deal:v('np-deal'),client:'—',due:v('np-due')||'2026-12-31',state:'Yeni'}); close(); toast('Proje oluşturuldu · sıradaki adım data room yükleme'); render(); },
+  setCat(c){ S.catSel=c; render(); },
+  reclass(id,cat){ if(!cat) return; const d=D(id); d.cat=cat; d.type=CATS[cat]+' belgesi'; d.conf=1; toast(`${d.file} → ${CATS[cat]} (elle sınıflandırıldı, model bu düzeltmeden öğrenir)`); render(); },
+  upload(files){ [...files].forEach(f=>{ const name=f.name; S.uploading.push(name); setTimeout(()=>{ S.uploading=S.uploading.filter(x=>x!==name); const [cat,type,conf]=guess(name); S.docs.unshift({id:'d'+Date.now()+Math.random(),file:name,cat,type,conf,pages:Math.max(1,Math.round(f.size/40000))||1,date:TODAY,flag:''}); if(route()==='dataroom') render(); toast(`${name} → ${CATS[cat]}`); },1600); }); render(); },
+  openFinding(id){ S.fSel=id; S.fSev='all'; S.fArea='all'; S.fSt='all'; close(); go('bulgular'); },
+  selFinding(id){ S.fSel=id; render(); if(window.innerWidth<1100) document.querySelector('.detail')?.scrollIntoView({behavior:'smooth'}); },
+  flt(k,v){ S[k]=v; render(); },
+  decide(id,st){ const f=F(id); const ns=document.getElementById('ex-sev').value; const note=document.getElementById('ex-note').value.trim(); const now='31.10.2026 '+new Date().toTimeString().slice(0,5);
+    if(ns!==f.sev) f.log.push(`Alperen Gültekin seviyeyi değiştirdi: ${SEV[f.sev]} → ${SEV[ns]} · ${now}`);
+    f.sev=ns; f.note=note; f.st=st; f.log.push(`Alperen Gültekin ${st==='onay'?'doğruladı':'reddetti'} · ${now}`);
+    toast(st==='onay'?`${id} doğrulandı, rapora eklendi`:`${id} reddedildi, rapordan çıkarıldı`);
+    const next=filtered().find(x=>x.st==='acik'); if(next) S.fSel=next.id; render(); },
+  onlyAp(v){ S.onlyApproved=v; render(); }
+};
+render();
+})();
+</script>
